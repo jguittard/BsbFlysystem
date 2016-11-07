@@ -76,7 +76,7 @@ class FilesystemManagerTest extends TestCase
         $adapter = $filesystem->getAdapter();
 
         $pathPrefix = $adapter->getPathPrefix();
-        $pathPrefix = str_replace(realpath('.'), '', $pathPrefix);
+        $pathPrefix = str_replace('.', '', $pathPrefix);
 
         $this->assertEquals('/test/_build/files/', $pathPrefix);
 
@@ -88,7 +88,7 @@ class FilesystemManagerTest extends TestCase
         $adapter = $filesystem->getAdapter();
 
         $pathPrefix = $adapter->getPathPrefix();
-        $pathPrefix = str_replace(realpath('.'), '', $pathPrefix);
+        $pathPrefix = str_replace('.', '', $pathPrefix);
 
         $this->assertEquals('/test/_build/documents/', $pathPrefix);
     }

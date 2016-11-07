@@ -4,11 +4,17 @@ namespace BsbFlysystemTest\Filter\File;
 
 use BsbFlysystem\Filter\File\RenameUpload;
 use BsbFlysystemTest\Framework\TestCase;
+use League\Flysystem\AdapterInterface;
 use Prophecy\Argument;
+use Prophecy\Prophecy\ObjectProphecy;
+
 require_once __DIR__ . '/../../Assets/Functions.php';
 
 class RenameUploadTest extends TestCase
 {
+    /**
+     * @var ObjectProphecy
+     */
     protected $filesystem;
 
     public function setUp()
@@ -55,6 +61,39 @@ class RenameUploadTest extends TestCase
         $temp = $filter->filter($file);
 
         $this->assertEquals($path, $temp['tmp_name']);
+    }
+
+    /*public function testVisibilityIsSetToPrivateByDeault()
+    {
+
+    }*/
+
+    public function testCanSetVisibility()
+    {
+        $path = 'path/to/file.txt';
+        $this->filesystem->putStream($path, Argument::any(), Argument::any())
+            ->willReturn(true)
+            ->shouldBeCalled();
+        $this->filesystem->has($path)
+            ->willReturn(false);
+        /*$this->filesystem->getVisibility($path)
+            ->willReturn(true);*/
+
+        $filter = new RenameUpload([
+            'target' => $path,
+            'filesystem' => $this->filesystem->reveal(),
+            'visibility' => AdapterInterface::VISIBILITY_PUBLIC,
+        ]);
+
+        $file = [
+            'tmp_name' => __DIR__ . '/../../Assets/test.txt',
+            'name' => 'test.txt'
+        ];
+
+        $filter->filter($file);
+        $visibility = $this->filesystem->getVisibility($path);
+        var_dump($visibility);exit;
+        $this->assertEquals($visibility['visibility'], AdapterInterface::VISIBILITY_PUBLIC);
     }
 
     public function testWillThrowExceptionWithInvalidConstructorParams()

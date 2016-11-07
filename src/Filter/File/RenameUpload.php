@@ -2,6 +2,7 @@
 
 namespace BsbFlysystem\Filter\File;
 
+use League\Flysystem\AdapterInterface;
 use League\Flysystem\FilesystemInterface;
 use UnexpectedValueException;
 use Zend\Filter\File\RenameUpload as RenameUploadFilter;
@@ -13,6 +14,11 @@ class RenameUpload extends RenameUploadFilter
      * @var FilesystemInterface
      */
     protected $filesystem;
+
+    /**
+     * @var string
+     */
+    protected $visibility;
 
     /**
      * Constructor
@@ -46,10 +52,36 @@ class RenameUpload extends RenameUploadFilter
 
     /**
      * @param FilesystemInterface $filesystem
+     * @return RenameUpload
      */
     public function setFilesystem(FilesystemInterface $filesystem)
     {
         $this->filesystem = $filesystem;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getVisibility()
+    {
+        return $this->visibility;
+    }
+
+    /**
+     * @param string $visibility
+     * @return RenameUpload
+     */
+    public function setVisibility($visibility)
+    {
+        if (!in_array($visibility, [
+            AdapterInterface::VISIBILITY_PUBLIC,
+            AdapterInterface::VISIBILITY_PRIVATE])
+        ) {
+            throw new UnexpectedValueException('Unknown visibility');
+        }
+        $this->visibility = $visibility;
+        return $this;
     }
 
     /**
@@ -84,7 +116,14 @@ class RenameUpload extends RenameUploadFilter
             );
         }
         $stream = fopen($sourceFile, 'r+');
-        $result = $this->getFilesystem()->putStream($targetFile, $stream);
+
+        if ($this->getVisibility()) {
+            $result = $this->getFilesystem()->putStream($targetFile, $stream, ['visibility' => $this->getVisibility()]);
+        } else {
+            $result = $this->getFilesystem()->putStream($targetFile, $stream);
+        }
+
+
         fclose($stream);
 
         if (!$result) {
